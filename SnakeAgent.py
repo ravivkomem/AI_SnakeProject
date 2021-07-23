@@ -4,13 +4,15 @@ from collections import deque
 
 class SnakeAgent:
 
-    def __init__(self, board, strategy, symbol, size=5):
+    def __init__(self, board, strategy, symbol, size=5, is_enemy=False):
         self.board = board
         self.strategy = strategy
         self.symbol = symbol
         self.size = size
+        self.is_enemy = is_enemy
         
         self.body = None
+        self.is_alive = True
         self.score = 0
 
         self.init_body()
@@ -67,11 +69,17 @@ class SnakeAgent:
             
 
     def single_step(self):
+        if not self.is_alive:
+            return False
+        
         valid_steps = self.detect_valid_steps()
         next_loc = self.strategy(self.board, self.body[0], valid_steps)
-        print('next_loc =', next_loc)
+        #print('next_loc =', next_loc)
         
         if next_loc is None:
+            if not self.is_enemy:
+                self.is_alive = False
+                self.delete_snake()
             return False
         
         self.update_body(next_loc)
@@ -104,7 +112,13 @@ class SnakeAgent:
         
         self.body.appendleft(new_head)
         self.board[new_head[0]][new_head[1]] = self.symbol
-        
+    
+    def delete_snake(self):
+        for section in self.body:
+            x = section[0]
+            y = section[1]
+            self.board[x][y] = ' ';
+    
     def get_score(self):
         pass
     
