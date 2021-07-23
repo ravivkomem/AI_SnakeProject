@@ -7,10 +7,10 @@ class Game:
     
     def __init__(self, rows=13, cols=13):
         self.board = [[' '] * cols for _ in range(rows)]
-        self.agent1 = SnakeAgent(self.board, strategy=Strategy.max_manhattan_distance, symbol='A')
-        self.agent2 = SnakeAgent(self.board, strategy=Strategy.max_manhattan_distance, symbol='B')
-        self.enemy1 = SnakeAgent(self.board, strategy=Strategy.min_manhattan_distance, symbol='C', is_enemy=True)
-        self.enemy2 = SnakeAgent(self.board, strategy=Strategy.min_manhattan_distance, symbol='D', is_enemy=True)
+        self.agent1 = SnakeAgent(self.board, strategy=Strategy.max_manhattan_dist, symbol='A')
+        self.agent2 = SnakeAgent(self.board, strategy=Strategy.max_manhattan_dist, symbol='B')
+        self.enemy1 = SnakeAgent(self.board, strategy=Strategy.min_manhattan_dist, symbol='C', is_enemy=True)
+        self.enemy2 = SnakeAgent(self.board, strategy=Strategy.min_euclidian_dist, symbol='D', is_enemy=True)
         self.term = Terminal()
 
     def print_board(self):
