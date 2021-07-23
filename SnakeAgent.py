@@ -67,11 +67,16 @@ class SnakeAgent:
             else:
                 self.board[x][y] = self.symbol.lower()
             
-
     def single_step(self):
         if not self.is_alive:
             return False
         
+        for section in self.body:
+            if self.board[section[0]][section[1]] != self.symbol.upper() and self.board[section[0]][section[1]] != self.symbol.lower():
+                self.is_alive = False
+                self.delete_snake()
+                return False
+                
         valid_steps = self.detect_valid_steps()
         next_loc = self.strategy(self.board, self.body[0], valid_steps)
         #print('next_loc =', next_loc)
@@ -103,6 +108,17 @@ class SnakeAgent:
         
         return valid_steps
         
+    def is_valid_position(self, x, y):
+        rows_num = len(self.board)
+        cols_num = len(self.board[0])
+        if (not 0 <= x < rows_num) or (not 0 <= y < cols_num) or ([x, y] in self.body):
+            return False
+        if (not self.is_enemy) and (self.board[x][y] != ' '):
+            return False
+        if (self.is_enemy) and (self.board[x][y] == 'C' or self.board[x][y] == 'D' or self.board[x][y] == 'c' or self.board[x][y] == 'd'):
+            return False
+        return True
+    
     def update_body(self, new_head):
         tail = self.body.pop()
         self.board[tail[0]][tail[1]] = ' '
@@ -117,7 +133,8 @@ class SnakeAgent:
         for section in self.body:
             x = section[0]
             y = section[1]
-            self.board[x][y] = ' ';
+            if self.board[x][y] == self.symbol.upper() or self.board[x][y] == self.symbol.lower():
+                self.board[x][y] = ' ';
     
     def get_score(self):
         pass
@@ -136,9 +153,3 @@ class SnakeAgent:
             y = y - 1
         return x, y
     
-    def is_valid_position(self, x, y):
-        rows_num = len(self.board)
-        cols_num = len(self.board[0])
-        if (not 0 <= x < rows_num) or (not 0 <= y < cols_num) or (self.board[x][y] != ' ') or ([x, y] in self.body):
-            return False
-        return True

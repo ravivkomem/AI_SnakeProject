@@ -1,17 +1,22 @@
 from SnakeAgent import SnakeAgent
-from Strategy import always_right
+import Strategy
 import time
+from blessed import Terminal
 
 class Game:
     
-    def __init__(self, rows=20, cols=20):
+    def __init__(self, rows=13, cols=13):
         self.board = [[' '] * cols for _ in range(rows)]
-        self.agent1 = SnakeAgent(self.board, strategy=always_right, symbol='A')
-        self.agent2 = SnakeAgent(self.board, strategy=always_right, symbol='B')
-        self.enemy1 = SnakeAgent(self.board, strategy=always_right, symbol='C', is_enemy=True)
-        self.enemy2 = SnakeAgent(self.board, strategy=always_right, symbol='D', is_enemy=True)
+        self.agent1 = SnakeAgent(self.board, strategy=Strategy.max_manhattan_distance, symbol='A')
+        self.agent2 = SnakeAgent(self.board, strategy=Strategy.max_manhattan_distance, symbol='B')
+        self.enemy1 = SnakeAgent(self.board, strategy=Strategy.min_manhattan_distance, symbol='C', is_enemy=True)
+        self.enemy2 = SnakeAgent(self.board, strategy=Strategy.min_manhattan_distance, symbol='D', is_enemy=True)
+        self.term = Terminal()
 
     def print_board(self):
+        # clear the screen
+        print(self.term.home + self.term.clear)
+        
         print('    ', end='')
         for i in range(len(self.board[0])):
             print('{0} '.format(i % 10), end='')
@@ -27,13 +32,13 @@ class Game:
         print('* ' * (len(self.board[0]) + 2))
         
     def play(self):
-        
+        self.print_board()
         agent1_alive = True
         agent2_alive = True
         
         while agent1_alive or agent2_alive:
             
-            time.sleep(1)
+            time.sleep(0.2)
             self.enemy1.single_step()
             #self.print_board()
             
@@ -41,7 +46,7 @@ class Game:
             self.enemy2.single_step()
             #self.print_board()
             
-            #time.sleep(1)
+            #time.sleep(0.5)
             agent1_alive = self.agent1.single_step()
             #self.print_board()
             
