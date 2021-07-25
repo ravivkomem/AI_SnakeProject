@@ -1,6 +1,5 @@
-import sys
-import random
 from collections import deque
+import random
 
 class SnakeAgent:
 
@@ -25,7 +24,6 @@ class SnakeAgent:
             'D': []
         }
         
-
     def init_body(self):
         rows_num = len(self.board)
         cols_num = len(self.board[0])
@@ -54,9 +52,8 @@ class SnakeAgent:
                 
                 if not self.is_valid_position(next_x, next_y):
                     failed_attempts += 1
-                    if failed_attempts == 10:
-                        print('failed to position snake ' + self.symbol)
-                        sys.exit()
+                    if failed_attempts == 1000:
+                        raise Exception('failed to position snake ' + self.symbol)
                     continue
                 curr_size += 1
 
@@ -67,6 +64,7 @@ class SnakeAgent:
 
             snake_valid = True
             
+        # insert body to board
         for i, section in enumerate(self.body):
             x = section[0]
             y = section[1]
@@ -88,7 +86,6 @@ class SnakeAgent:
                 
         valid_steps = self.detect_valid_steps()
         next_loc = self.strategy(self.game_state, self.body[0], valid_steps)
-        #print('next_loc =', next_loc)
         
         if next_loc is None:
             if not self.is_enemy:
@@ -97,6 +94,7 @@ class SnakeAgent:
             return False
         
         self.update_body(next_loc)
+        self.get_score_point()
         return True
         
     def detect_valid_steps(self):
@@ -146,7 +144,7 @@ class SnakeAgent:
                 self.board[x][y] = ' ';
     
     def get_score(self):
-        pass
+        return self.score
     
     def get_score_point(self):
         self.score += 1

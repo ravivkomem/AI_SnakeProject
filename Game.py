@@ -1,14 +1,25 @@
 from SnakeAgent import SnakeAgent
 import Strategy
-import time
 from blessed import Terminal
 
 class Game:
     
-    def __init__(self, rows=13, cols=13):
+    def __init__(self, strategy, rows=13, cols=13):
         self.board = [[' '] * cols for _ in range(rows)]
-        self.agent1 = SnakeAgent(self.board, strategy=Strategy.mini_max, symbol='A')
-        self.agent2 = SnakeAgent(self.board, strategy=Strategy.max_manhattan_dist, symbol='B')
+        
+        if strategy == 0:
+            s = Strategy.always_right
+        elif strategy == 1:
+            s = Strategy.max_manhattan_dist
+        elif strategy == 2:
+            s = Strategy.max_euclidian_dist
+        elif strategy == 3:
+            s = Strategy.man_mini_max
+        elif strategy == 4:
+            s = Strategy.mini_max
+        
+        self.agent1 = SnakeAgent(self.board, strategy=s, symbol='A')
+        self.agent2 = SnakeAgent(self.board, strategy=s, symbol='B')
         self.enemy1 = SnakeAgent(self.board, strategy=Strategy.min_manhattan_dist, symbol='C', is_enemy=True)
         self.enemy2 = SnakeAgent(self.board, strategy=Strategy.min_euclidian_dist, symbol='D', is_enemy=True)
         self.term = Terminal()
@@ -37,7 +48,7 @@ class Game:
         print('* ' * (len(self.board[0]) + 2))
         
     def play(self):
-        self.print_board()
+        #self.print_board()
         agent1_alive = True
         agent2_alive = True
         
@@ -56,12 +67,35 @@ class Game:
             agent2_alive = self.agent2.single_step()
             self.notify_all_agents('B', self.agent2.get_body())
             
-            self.print_board()
-            #if not self.evaluate_board():
-            #    game_on = False
+            #self.print_board()
+        
+        #print('A Score:')
+        #print(self.agent1.get_score())
+        #print('B Score:')
+        #print(self.agent2.get_score())
+        
+        return self.agent1.get_score(), self.agent2.get_score()
             
     def notify_all_agents(self, symbol, body):
         self.agent1.notify(symbol, body)
         self.agent2.notify(symbol, body)
         self.enemy1.notify(symbol, body)
         self.enemy2.notify(symbol, body)
+        
+    # def m_deepcopy(self):
+    #     new_game = Game()
+    #     new_game.set_all(self.board,
+    #                      self.agent1,
+    #                      self.agent2,
+    #                      self.enemy1,
+    #                      self.enemy2
+    #                      )
+    #     return new_game
+    
+    # def set_all(self, board, agent1, agent2, enemy1, enemy2):
+    #     self.board = copy.deepcopy(board)
+    #     self.agent1 = copy.deepcopy(agent1)
+    #     self.agent2 = copy.deepcopy(agent2)
+    #     self.enemy1 = copy.deepcopy(enemy1)
+    #     self.enemy2 = copy.deepcopy(enemy2)
+        

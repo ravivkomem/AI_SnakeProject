@@ -52,6 +52,22 @@ def calc_manhattan_dist(pos_src, pos_dst):
     dist = abs(pos_src[0] - pos_dst[0]) + abs(pos_src[1] - pos_dst[1])
     return dist
 
+def max_euclidian_dist(game_state, head, valid_steps):
+    # for Agents
+    board = game_state['Board']
+    c_head = find_snake_head(board, 'C')
+    d_head = find_snake_head(board, 'D')
+    
+    next_step = None
+    max_dist = 0
+    for step in valid_steps:
+        cur_dist = min(calc_euclidian_dist(step, c_head), calc_manhattan_dist(step, d_head))
+        if cur_dist > max_dist:
+            max_dist = cur_dist
+            next_step = step
+    
+    return next_step
+
 def min_euclidian_dist(game_state, head, valid_steps):
     # for Enemies
     board = game_state['Board']
@@ -98,16 +114,22 @@ def find_snake_body(board, symbol):
     return snake_body
     
 
-def mini_max(game_state, head, valid_steps):
+def man_mini_max(game_state, head, valid_steps):
+    return mini_max(game_state, head, valid_steps, manhattan_flag=True)
+    
+def mini_max(game_state, head, valid_steps, manhattan_flag=False):
     orig_symbol = game_state['Board'][head[0]][head[1]]
     
+    if valid_steps == []:
+        return None
+    
     step_scores = [min_max_search(orig_agent=orig_symbol, curr_agent=orig_symbol,
-                                  depth=0, game_state=generate_game_state(game_state, orig_symbol, step)) for step in valid_steps]
+                                  depth=0, game_state=generate_game_state(game_state, orig_symbol, step), manhattan_flag=manhattan_flag) for step in valid_steps]
     max_step = max(step_scores)
     max_indices = [index for index in range(len(step_scores)) if step_scores[index] == max_step]
     chosenIndex = random.choice(max_indices)
     return valid_steps[chosenIndex]
-    
+
 def generate_game_state(game_state, curr_agent, step):
     new_game_state = copy.deepcopy(game_state)
     
@@ -124,14 +146,13 @@ def generate_game_state(game_state, curr_agent, step):
     
     return new_game_state
     
-
-def min_max_search(orig_agent, curr_agent, depth, game_state, max_depth=2):
+def min_max_search(orig_agent, curr_agent, depth, game_state, manhattan_flag, max_depth=1):
     agents_order = ['C', 'D', 'A', 'B']
     
     if is_eaten(orig_agent, game_state):
         return 0
     if depth == max_depth:
-        return evaluate_game_state(orig_agent, game_state) # in leaves of tree
+        return evaluate_game_state(orig_agent, game_state, manhattan_flag=manhattan_flag) # in leaves of tree
     
     # Find Agent Id
     agent_id = 0
@@ -144,15 +165,17 @@ def min_max_search(orig_agent, curr_agent, depth, game_state, max_depth=2):
     if next_agent == orig_agent:
         depth += 1
     
+    valid_steps = get_valid_steps(curr_agent, game_state)
+    if valid_steps == []:
+        return min_max_search(orig_agent, next_agent, depth, game_state, manhattan_flag=manhattan_flag)
+    
     # Max State
     if curr_agent == 'A' or curr_agent == 'B':
-        valid_steps = get_valid_steps(curr_agent, game_state)
-        return max(min_max_search(orig_agent, next_agent, depth, generate_game_state(game_state, curr_agent, step)) for step in valid_steps)
+        return max(min_max_search(orig_agent, next_agent, depth, generate_game_state(game_state, curr_agent, step), manhattan_flag=manhattan_flag) for step in valid_steps)
     
     # Min State
     if curr_agent == 'C' or curr_agent == 'D':
-        valid_steps = get_valid_steps(curr_agent, game_state)
-        return min(min_max_search(orig_agent, next_agent, depth, generate_game_state(game_state, curr_agent, step)) for step in valid_steps)
+        return min(min_max_search(orig_agent, next_agent, depth, generate_game_state(game_state, curr_agent, step), manhattan_flag=manhattan_flag) for step in valid_steps)
     
     return 0
 
@@ -164,12 +187,15 @@ def is_eaten(agent, game_state):
             return True
     return False
 
-def evaluate_game_state(agent, game_state):
+def evaluate_game_state(agent, game_state, manhattan_flag):
     if agent == 'A' or agent == 'B':
         head = game_state[agent][0]
         c_head = game_state['C'][0]
         d_head = game_state['D'][0]
-        dist = min(calc_euclidian_dist(head, c_head), calc_euclidian_dist(head, d_head))
+        if manhattan_flag:
+            dist = min(calc_manhattan_dist(head, c_head), calc_manhattan_dist(head, d_head))
+        else:
+            dist = min(calc_euclidian_dist(head, c_head), calc_euclidian_dist(head, d_head))
         return dist
     return 0
 
@@ -206,18 +232,3 @@ def is_valid_position(symbol, game_state, pos):
         return False
     return True
     
-# def minimax(self, agent, depth, gameState):
-#         if gameState.isLose() or gameState.isWin() or depth == self.depth:
-#             return self.evaluationFunction(gameState)
-#         if agent == 0:  # maximize for pacman
-#             return max(self.minimax(1, depth, gameState.generateSuccessor(agent, action)) for action in
-#                         getLegalActionsNoStop(0, gameState))
-#         else:  # minimize for ghosts
-#             nextAgent = agent + 1  # get the next agent
-#             if gameState.getNumAgents() == nextAgent:
-#                 nextAgent = 0
-#             if nextAgent == 0:  # increase depth every time all agents have moved
-#                 depth += 1
-#             return min(self.minimax(nextAgent, depth, gameState.generateSuccessor(agent, action)) for action in
-#                         getLegalActionsNoStop(agent, gameState))
-
