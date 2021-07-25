@@ -7,11 +7,16 @@ class Game:
     
     def __init__(self, rows=13, cols=13):
         self.board = [[' '] * cols for _ in range(rows)]
-        self.agent1 = SnakeAgent(self.board, strategy=Strategy.max_manhattan_dist, symbol='A')
+        self.agent1 = SnakeAgent(self.board, strategy=Strategy.mini_max, symbol='A')
         self.agent2 = SnakeAgent(self.board, strategy=Strategy.max_manhattan_dist, symbol='B')
         self.enemy1 = SnakeAgent(self.board, strategy=Strategy.min_manhattan_dist, symbol='C', is_enemy=True)
         self.enemy2 = SnakeAgent(self.board, strategy=Strategy.min_euclidian_dist, symbol='D', is_enemy=True)
         self.term = Terminal()
+        
+        self.notify_all_agents('A', self.agent1.get_body())
+        self.notify_all_agents('B', self.agent2.get_body())
+        self.notify_all_agents('C', self.enemy1.get_body())
+        self.notify_all_agents('D', self.enemy2.get_body())
 
     def print_board(self):
         # clear the screen
@@ -37,23 +42,26 @@ class Game:
         agent2_alive = True
         
         while agent1_alive or agent2_alive:
+            #time.sleep(0.2)
             
-            time.sleep(0.2)
             self.enemy1.single_step()
-            #self.print_board()
+            self.notify_all_agents('C', self.enemy1.get_body())
             
-            #time.sleep(1)
             self.enemy2.single_step()
-            #self.print_board()
+            self.notify_all_agents('D', self.enemy2.get_body())
             
-            #time.sleep(0.5)
             agent1_alive = self.agent1.single_step()
-            #self.print_board()
+            self.notify_all_agents('A', self.agent1.get_body())
             
-            #time.sleep(1)
             agent2_alive = self.agent2.single_step()
-            self.print_board()
+            self.notify_all_agents('B', self.agent2.get_body())
             
+            self.print_board()
             #if not self.evaluate_board():
             #    game_on = False
             
+    def notify_all_agents(self, symbol, body):
+        self.agent1.notify(symbol, body)
+        self.agent2.notify(symbol, body)
+        self.enemy1.notify(symbol, body)
+        self.enemy2.notify(symbol, body)

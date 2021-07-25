@@ -16,6 +16,15 @@ class SnakeAgent:
         self.score = 0
 
         self.init_body()
+        
+        self.game_state = { 
+            'Board': board,
+            'A': [],
+            'B': [],
+            'C': [],
+            'D': []
+        }
+        
 
     def init_body(self):
         rows_num = len(self.board)
@@ -78,7 +87,7 @@ class SnakeAgent:
                 return False
                 
         valid_steps = self.detect_valid_steps()
-        next_loc = self.strategy(self.board, self.body[0], valid_steps)
+        next_loc = self.strategy(self.game_state, self.body[0], valid_steps)
         #print('next_loc =', next_loc)
         
         if next_loc is None:
@@ -153,3 +162,12 @@ class SnakeAgent:
             y = y - 1
         return x, y
     
+    def get_body(self):
+        return self.body
+    
+    def notify(self, symbol, body):
+        self.game_state[symbol] = body
+        
+        
+        
+        

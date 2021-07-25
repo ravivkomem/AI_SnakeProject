@@ -1,12 +1,15 @@
 import sys
+import copy
+import random
 
-def always_right(board, head, valid_steps):
+def always_right(game_state, head, valid_steps):
     if [head[0],head[1]+1] in valid_steps:
         return [head[0],head[1]+1]
     return None
 
-def max_manhattan_dist(board, head, valid_steps):
+def max_manhattan_dist(game_state, head, valid_steps):
     # for Agents
+    board = game_state['Board']
     c_head = find_snake_head(board, 'C')
     d_head = find_snake_head(board, 'D')
     
@@ -20,8 +23,9 @@ def max_manhattan_dist(board, head, valid_steps):
     
     return next_step
 
-def min_manhattan_dist(board, head, valid_steps):
+def min_manhattan_dist(game_state, head, valid_steps):
     # for Enemies
+    board = game_state['Board']
     a_body = find_snake_body(board, 'A')
     b_body = find_snake_body(board, 'B')
     
@@ -48,8 +52,9 @@ def calc_manhattan_dist(pos_src, pos_dst):
     dist = abs(pos_src[0] - pos_dst[0]) + abs(pos_src[1] - pos_dst[1])
     return dist
 
-def min_euclidian_dist(board, head, valid_steps):
+def min_euclidian_dist(game_state, head, valid_steps):
     # for Enemies
+    board = game_state['Board']
     a_body = find_snake_body(board, 'A')
     b_body = find_snake_body(board, 'B')
     
@@ -92,3 +97,127 @@ def find_snake_body(board, symbol):
                 snake_body.append([r,c])
     return snake_body
     
+
+def mini_max(game_state, head, valid_steps):
+    orig_symbol = game_state['Board'][head[0]][head[1]]
+    
+    step_scores = [min_max_search(orig_agent=orig_symbol, curr_agent=orig_symbol,
+                                  depth=0, game_state=generate_game_state(game_state, orig_symbol, step)) for step in valid_steps]
+    max_step = max(step_scores)
+    max_indices = [index for index in range(len(step_scores)) if step_scores[index] == max_step]
+    chosenIndex = random.choice(max_indices)
+    return valid_steps[chosenIndex]
+    
+def generate_game_state(game_state, curr_agent, step):
+    new_game_state = copy.deepcopy(game_state)
+    
+    board = new_game_state['Board']
+    body = new_game_state[curr_agent]
+    tail = body.pop()
+    board[tail[0]][tail[1]] = ' '
+    
+    head = body[0]
+    board[head[0]][head[1]] = curr_agent.lower()
+    
+    body.appendleft(step)
+    board[step[0]][step[1]] = curr_agent.upper()
+    
+    return new_game_state
+    
+
+def min_max_search(orig_agent, curr_agent, depth, game_state, max_depth=2):
+    agents_order = ['C', 'D', 'A', 'B']
+    
+    if is_eaten(orig_agent, game_state):
+        return 0
+    if depth == max_depth:
+        return evaluate_game_state(orig_agent, game_state) # in leaves of tree
+    
+    # Find Agent Id
+    agent_id = 0
+    for i, agent in enumerate(agents_order):
+        if agent == curr_agent:
+            agent_id = i
+            break
+    
+    next_agent = agents_order[(agent_id + 1) % len(agents_order)]
+    if next_agent == orig_agent:
+        depth += 1
+    
+    # Max State
+    if curr_agent == 'A' or curr_agent == 'B':
+        valid_steps = get_valid_steps(curr_agent, game_state)
+        return max(min_max_search(orig_agent, next_agent, depth, generate_game_state(game_state, curr_agent, step)) for step in valid_steps)
+    
+    # Min State
+    if curr_agent == 'C' or curr_agent == 'D':
+        valid_steps = get_valid_steps(curr_agent, game_state)
+        return min(min_max_search(orig_agent, next_agent, depth, generate_game_state(game_state, curr_agent, step)) for step in valid_steps)
+    
+    return 0
+
+def is_eaten(agent, game_state):
+    board = game_state['Board']
+    body = game_state[agent]
+    for section in body:
+        if board[section[0]][section[1]] != agent.lower() and board[section[0]][section[1]] != agent.upper():
+            return True
+    return False
+
+def evaluate_game_state(agent, game_state):
+    if agent == 'A' or agent == 'B':
+        head = game_state[agent][0]
+        c_head = game_state['C'][0]
+        d_head = game_state['D'][0]
+        dist = min(calc_euclidian_dist(head, c_head), calc_euclidian_dist(head, d_head))
+        return dist
+    return 0
+
+def get_valid_steps(curr_agent, game_state):
+    body = game_state[curr_agent]
+    head = body[0]
+    valid_steps = []
+    # up
+    if is_valid_position(curr_agent, game_state, [head[0]-1, head[1]]):
+        valid_steps.append([head[0]-1, head[1]])
+    # down
+    if is_valid_position(curr_agent, game_state, [head[0]+1, head[1]]):
+        valid_steps.append([head[0]+1, head[1]])
+    # left
+    if is_valid_position(curr_agent, game_state, [head[0], head[1]-1]):
+        valid_steps.append([head[0], head[1]-1])
+    # right
+    if is_valid_position(curr_agent, game_state, [head[0], head[1]+1]):
+        valid_steps.append([head[0], head[1]+1])
+    
+    return valid_steps
+
+def is_valid_position(symbol, game_state, pos):
+    board = game_state['Board']
+    body = game_state[symbol]
+    
+    rows_num = len(board)
+    cols_num = len(board[0])
+    if (not 0 <= pos[0] < rows_num) or (not 0 <= pos[1] < cols_num) or (pos in body):
+        return False
+    if (symbol == 'A' or symbol == 'B') and (board[pos[0]][pos[1]] != ' '):
+        return False
+    if (symbol == 'C' or symbol == 'D') and (board[pos[0]][pos[1]] == 'C' or board[pos[0]][pos[1]] == 'D' or board[pos[0]][pos[1]] == 'c' or board[pos[0]][pos[1]] == 'd'):
+        return False
+    return True
+    
+# def minimax(self, agent, depth, gameState):
+#         if gameState.isLose() or gameState.isWin() or depth == self.depth:
+#             return self.evaluationFunction(gameState)
+#         if agent == 0:  # maximize for pacman
+#             return max(self.minimax(1, depth, gameState.generateSuccessor(agent, action)) for action in
+#                         getLegalActionsNoStop(0, gameState))
+#         else:  # minimize for ghosts
+#             nextAgent = agent + 1  # get the next agent
+#             if gameState.getNumAgents() == nextAgent:
+#                 nextAgent = 0
+#             if nextAgent == 0:  # increase depth every time all agents have moved
+#                 depth += 1
+#             return min(self.minimax(nextAgent, depth, gameState.generateSuccessor(agent, action)) for action in
+#                         getLegalActionsNoStop(agent, gameState))
+
