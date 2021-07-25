@@ -1,8 +1,9 @@
 from Game import Game
 import matplotlib.pyplot as plt
+import numpy as np
 
-avg_agent_scoreA = [[0] * 5 for _ in range(5)]
-avg_agent_scoreB = [[0] * 5 for _ in range(5)]
+avg_agent_scoreA = np.array([[0] * 3 for _ in range(5)])
+avg_agent_scoreB = np.array([[0] * 3 for _ in range(5)])
 
 board_size = 4
 while board_size <= 6:
@@ -35,29 +36,29 @@ while board_size <= 6:
         elif s == 2:
             print("-----Euclidian Distance-----")
         elif s == 3:
-            print("-----Manhattan Minimax Search Tree-----")
+            print("-----Manhattan Minimax Depth 1-----")
         elif s == 4:
-            print("-----Euclidian Minimax Search Tree-----")
+            print("-----Euclidian Minimax Depth 1-----")
         
         print("Score A: ", end='')
         print(avg_scoreA)
         print("Score B: ", end='')
         print(avg_scoreB)
         
-        avg_agent_scoreA[board_size-4][s] = avg_scoreA
-        avg_agent_scoreB[board_size-4][s] = avg_scoreB
+        avg_agent_scoreA[s][board_size-4] = avg_scoreA
+        avg_agent_scoreB[s][board_size-4] = avg_scoreB
         
         s += 1
     
     board_size += 1
     
-x_ticks = [16, 25, 36]
+x_ticks = np.array([16, 25, 36])
 l1,l2,l3,l4,l5 = plt.plot(x_ticks, avg_agent_scoreA[:][0], 'r',
                           x_ticks, avg_agent_scoreA[:][1], 'g',
                           x_ticks, avg_agent_scoreA[:][2], 'b',
                           x_ticks, avg_agent_scoreA[:][3], 'c',
                           x_ticks, avg_agent_scoreA[:][4], 'k')
-plt.legend([l1, l2, l3, l4, l5], ['Always Right', 'Manhattan Distance', 'Euclidian Distance', 'Manhattan Minimax Search Tree', 'Euclidian Minimax Search Tree'])
+plt.legend([l1, l2, l3, l4, l5], ['Always Right', 'Manhattan Distance', 'Euclidian Distance', 'Manhattan Minimax Search Tree', 'Euclidian Minimax Search Tree'], loc=4)
 plt.xlabel('grid_size')
 plt.ylabel('average agent score A')
 plt.show()
@@ -68,7 +69,7 @@ l1,l2,l3,l4,l5 = plt.plot(x_ticks, avg_agent_scoreB[:][0], 'r',
                           x_ticks, avg_agent_scoreB[:][2], 'b',
                           x_ticks, avg_agent_scoreB[:][3], 'c',
                           x_ticks, avg_agent_scoreB[:][4], 'k')
-plt.legend([l1, l2, l3, l4, l5], ['Always Right', 'Manhattan Distance', 'Euclidian Distance', 'Manhattan Minimax Search Tree', 'Euclidian Minimax Search Tree'])
+plt.legend([l1, l2, l3, l4, l5], ['Always Right', 'Manhattan Distance', 'Euclidian Distance', 'Manhattan Minimax Search Tree', 'Euclidian Minimax Search Tree'], loc=4)
 plt.xlabel('grid_size')
 plt.ylabel('average agent score B')
 plt.show()
