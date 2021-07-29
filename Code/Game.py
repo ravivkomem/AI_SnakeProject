@@ -48,7 +48,7 @@ class Game:
         print('* ' * (len(self.board[0]) + 2))
         
     def play(self):
-        self.print_board()
+        #self.print_board()
         agent1_alive = True
         agent2_alive = True
         

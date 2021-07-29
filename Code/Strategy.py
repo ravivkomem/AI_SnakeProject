@@ -147,7 +147,7 @@ def generate_game_state(game_state, curr_agent, step):
     return new_game_state
     
 def min_max_search(orig_agent, curr_agent, depth, game_state, manhattan_flag, max_depth=1):
-    agents_order = ['C', 'D', 'A', 'B']
+    agents_order = ['C', 'D', orig_agent]
     
     if is_eaten(orig_agent, game_state):
         return 0
