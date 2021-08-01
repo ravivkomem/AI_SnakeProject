@@ -165,17 +165,15 @@ def min_max_search(orig_agent, curr_agent, depth, game_state, manhattan_flag, ma
     if next_agent == orig_agent:
         depth += 1
     
-    valid_steps = get_valid_steps(curr_agent, game_state)
-    if valid_steps == []:
-        return min_max_search(orig_agent, next_agent, depth, game_state, manhattan_flag=manhattan_flag)
-    
     # Max State
-    if curr_agent == 'A' or curr_agent == 'B':
-        return max(min_max_search(orig_agent, next_agent, depth, generate_game_state(game_state, curr_agent, step), manhattan_flag=manhattan_flag) for step in valid_steps)
-    
-    # Min State
-    if curr_agent == 'C' or curr_agent == 'D':
-        return min(min_max_search(orig_agent, next_agent, depth, generate_game_state(game_state, curr_agent, step), manhattan_flag=manhattan_flag) for step in valid_steps)
+    if curr_agent == orig_agent:
+        valid_steps = get_valid_steps(curr_agent, game_state)
+        if valid_steps == []:
+            return min_max_search(orig_agent, next_agent, depth, game_state, manhattan_flag=manhattan_flag)
+        else:
+            return max(min_max_search(orig_agent, next_agent, depth, generate_game_state(game_state, curr_agent, step), manhattan_flag=manhattan_flag) for step in valid_steps)
+    else:
+        return min_max_search(orig_agent, next_agent, depth, single_step(curr_agent, game_state), manhattan_flag=manhattan_flag)
     
     return 0
 
@@ -192,6 +190,11 @@ def evaluate_game_state(agent, game_state, manhattan_flag):
         head = game_state[agent][0]
         c_head = game_state['C'][0]
         d_head = game_state['D'][0]
+        
+        valid_steps = get_valid_steps(agent, game_state)
+        if valid_steps == []:
+            return -1
+        
         if manhattan_flag:
             dist = min(calc_manhattan_dist(head, c_head), calc_manhattan_dist(head, d_head))
         else:
@@ -232,3 +235,44 @@ def is_valid_position(symbol, game_state, pos):
         return False
     return True
     
+def single_step(symbol, game_state):
+    new_game_state = copy.deepcopy(game_state)
+    
+    board = new_game_state['Board']
+    body = new_game_state[symbol]
+    
+    if body == []:
+        return new_game_state
+    
+    for section in body:
+        if board[section[0]][section[1]] != symbol.upper() and board[section[0]][section[1]] != symbol.lower():
+            new_game_state[symbol] = []
+            return new_game_state
+        
+    valid_steps = get_valid_steps(symbol, new_game_state)
+    
+    if symbol == 'A' or symbol == 'B':
+        next_loc = max_manhattan_dist(new_game_state, body[0], valid_steps)        
+    elif symbol == 'C' or symbol == 'D':
+        next_loc = min_manhattan_dist(new_game_state, body[0], valid_steps)        
+        
+    if next_loc is None:
+        if symbol == 'A' or symbol == 'B':
+            new_game_state[symbol] = []
+        return new_game_state
+    
+    update_body(symbol, new_game_state, next_loc)
+    return new_game_state
+
+def update_body(symbol, game_state, new_head):
+    board = game_state['Board']
+    body = game_state[symbol]
+    
+    tail = body.pop()
+    board[tail[0]][tail[1]] = ' '
+    
+    cur_head = body[0]
+    board[cur_head[0]][cur_head[1]] = symbol.lower()
+    
+    body.appendleft(new_head)
+    board[new_head[0]][new_head[1]] = symbol
