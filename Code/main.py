@@ -15,12 +15,12 @@ while board_size <= 6:
         avg_scoreB = 0
         grid_size = board_size**2
         
-        n = 100
+        n = 0
         for i in range(100):
             try:
                 game = Game(strategy=s, rows=grid_size, cols=grid_size)
+                n += 1
             except Exception:
-                n -= 1
                 continue
             scoreA, scoreB = game.play()
             avg_scoreA += scoreA

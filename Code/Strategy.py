@@ -147,7 +147,7 @@ def generate_game_state(game_state, curr_agent, step):
     return new_game_state
     
 def min_max_search(orig_agent, curr_agent, depth, game_state, manhattan_flag, max_depth=1):
-    agents_order = ['C', 'D', 'A', 'B']
+    agents_order = ['C', 'D', orig_agent]
     
     if is_eaten(orig_agent, game_state):
         return 0
@@ -192,6 +192,11 @@ def evaluate_game_state(agent, game_state, manhattan_flag):
         head = game_state[agent][0]
         c_head = game_state['C'][0]
         d_head = game_state['D'][0]
+        
+        valid_steps = get_valid_steps(agent, game_state)
+        if valid_steps == []:
+            return -1
+        
         if manhattan_flag:
             dist = min(calc_manhattan_dist(head, c_head), calc_manhattan_dist(head, d_head))
         else:
