@@ -3,3 +3,7 @@ The game is a simulation of multiple agents with conflicting goals. The agents t
 
 # Overleaf
 https://www.overleaf.com/read/qgkybzdtfvmf
+
+# Authors
+- Lior Wunsch
+- Raviv Komem
